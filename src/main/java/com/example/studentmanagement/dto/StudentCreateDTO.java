@@ -1,6 +1,8 @@
 package com.example.studentmanagement.dto;
 
 import com.example.studentmanagement.model.Clazz;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -9,6 +11,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
+@Getter
+@Setter
 public class StudentCreateDTO implements Validator {
     @NotBlank(message = "Tên không được để trống")
     @Length( max = 50, message = "Tên quá 50 ký tự")
@@ -20,30 +24,6 @@ public class StudentCreateDTO implements Validator {
 
     @Valid
     private Clazz clazz;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getScore() {
-        return score;
-    }
-
-    public void setScore(String score) {
-        this.score = score;
-    }
-
-    public Clazz getClazz() {
-        return clazz;
-    }
-
-    public void setClazz(Clazz clazz) {
-        this.clazz = clazz;
-    }
 
     @Override
     public boolean supports(Class<?> clazz) {

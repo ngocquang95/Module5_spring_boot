@@ -7,16 +7,18 @@ import com.example.studentmanagement.model.Clazz;
 import com.example.studentmanagement.model.Student;
 import com.example.studentmanagement.service.IClazzService;
 import com.example.studentmanagement.service.IStudentService;
+import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -48,15 +50,19 @@ public class StudentController {
     @GetMapping("/edit")
     public String showEdit(Model model, int id) {
         Student student = studentService.findById(id);
-
         model.addAttribute("student", student);
         return "student/edit";
     }
 
     @GetMapping("")
-    public String showList(Model model, StudentSearchDTO studentSearchDTO) {
+    public String showList(Model model, StudentSearchDTO studentSearchDTO,
+                           @PageableDefault(page = 0, size = 2, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
         model.addAttribute("clazzList", clazzService.findAll());
-        model.addAttribute("studentList", studentService.search(studentSearchDTO));
+        Page<Student> studentList = studentService.search(studentSearchDTO, pageable);
+        model.addAttribute("studentList", studentList);
+        model.addAttribute("arrayPage", new int[studentList.getTotalPages()]); // 5 trang [0, 0, 0, 0, 0]
+        model.addAttribute("sort", pageable.getSort().toString().replace(": ", ","));
+
         return "student/list";
     }
 
@@ -76,6 +82,8 @@ public class StudentController {
         redirectAttributes.addFlashAttribute("message", "Thêm mới thành công");
         return "redirect:/student";
     }
+
+
 
 //    private void editStudent(HttpServletRequest request, HttpServletResponse response) {
 //        int id = Integer.parseInt(request.getParameter("id"));

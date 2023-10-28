@@ -5,6 +5,8 @@ import com.example.studentmanagement.model.Student;
 import com.example.studentmanagement.repository.IStudentRepository;
 import com.example.studentmanagement.service.IStudentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +17,7 @@ public class StudentService implements IStudentService {
     private IStudentRepository studentRepository;
 
     @Override
-    public List<Student> search(StudentSearchDTO studentSearchDTO) {
+    public Page<Student> search(StudentSearchDTO studentSearchDTO, Pageable pageable) {
         // Tránh trường hợp người dùng đi vào màn hình list (Chưa search)
         if(studentSearchDTO.getName() == null) {
             studentSearchDTO.setName("");
@@ -31,15 +33,15 @@ public class StudentService implements IStudentService {
 
 //        return studentRepository.search(studentSearchDTO);
         //return studentRepository.findByNameContaining(studentSearchDTO.getName());
-        return studentRepository.search2(studentSearchDTO.getName(),
+        return studentRepository.search(studentSearchDTO.getName(),
                 studentSearchDTO.getFromScore(),
                 studentSearchDTO.getToScore(),
-                studentSearchDTO.getClazzId());
+                studentSearchDTO.getClazzId(), pageable);
     }
 
     @Override
     public Student findById(int id) {
-        return studentRepository.findById(id).orElse(null);
+        return studentRepository.findById(id).orElseThrow(NullPointerException::new); // Java 8 => cú pháp ngắn gọn
     }
 
     @Override

@@ -1,9 +1,14 @@
 package com.example.studentmanagement.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
+@Getter
+@Setter
 public class Clazz {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,28 +18,4 @@ public class Clazz {
 
     @Column(name = "name")
     private String name;
-
-    public Clazz() {
-    }
-
-    public Clazz(Integer id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 }
