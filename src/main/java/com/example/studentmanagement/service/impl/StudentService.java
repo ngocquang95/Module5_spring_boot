@@ -41,15 +41,20 @@ public class StudentService implements IStudentService {
 
     @Override
     public Student findById(int id) {
-        return studentRepository.findById(id).orElseThrow(NullPointerException::new); // Java 8 => cú pháp ngắn gọn
+        return studentRepository.findById(id).orElse(null); // Java 8 => cú pháp ngắn gọn
     }
 
     @Override
-    public void create(Student student) {
+    public void save(Student student) {
         studentRepository.save(student);
         /*
         nếu như khóa chính không tồn tại ở DB: thêm mới
         Nếu khóa chính trùng với id ở trong DB: cập nhập
          */
+    }
+
+    @Override
+    public void delete(Student student) {
+        studentRepository.delete(student);
     }
 }

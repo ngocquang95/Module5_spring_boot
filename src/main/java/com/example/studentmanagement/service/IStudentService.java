@@ -12,5 +12,7 @@ public interface IStudentService {
 
     Student findById(int id);
 
-    void create(Student student);
+    void save(Student student);
+
+    void delete(Student student);
 }

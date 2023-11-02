@@ -1,94 +1,107 @@
 package com.example.studentmanagement.controller;
 
+import com.example.studentmanagement.dto.MessageErrorDTO;
 import com.example.studentmanagement.dto.StudentCreateDTO;
 import com.example.studentmanagement.dto.StudentSearchDTO;
+import com.example.studentmanagement.dto.StudentUpdateDTO;
 import com.example.studentmanagement.mapper.StudentMapper;
-import com.example.studentmanagement.model.Clazz;
 import com.example.studentmanagement.model.Student;
 import com.example.studentmanagement.service.IClazzService;
 import com.example.studentmanagement.service.IStudentService;
-import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@Controller
-@RequestMapping("/student")
+@RestController
+@RequestMapping("/students")
 public class StudentController {
     @Autowired
     @Qualifier("studentService") // Chọn triển khai theo tên bean
     private IStudentService studentService;
 
     @Autowired
-    private IClazzService clazzService;
-
-    @Autowired
     private StudentMapper studentMapper;
+    // Restful API
 
-    @ModelAttribute("clazzList")
-    public List<Clazz> getClazzList() {
-        return clazzService.findAll();
+    // Làm về BE
+    @GetMapping()
+    public ResponseEntity<Page<Student>> getStudents(StudentSearchDTO studentSearchDTO,
+                                                  @PageableDefault(page = 0, size = 2, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        return new ResponseEntity<>(studentService.search(studentSearchDTO, pageable), HttpStatus.OK);
     }
 
-    @GetMapping("/create")
-    public String showCreate(Model model) {
-        model.addAttribute("studentCreateDTO", new StudentCreateDTO());
-        return "student/create";
-    }
-
-    @GetMapping("/edit")
-    public String showEdit(Model model, int id) {
+    @GetMapping("{id}")
+    public ResponseEntity<Student> getStudent(@PathVariable("id") int id) {
         Student student = studentService.findById(id);
-        model.addAttribute("student", student);
-        return "student/edit";
+
+        if(student == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(student, HttpStatus.OK);
     }
 
-    @GetMapping("")
-    public String showList(Model model, StudentSearchDTO studentSearchDTO,
-                           @PageableDefault(page = 0, size = 2, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
-        model.addAttribute("clazzList", clazzService.findAll());
-        Page<Student> studentList = studentService.search(studentSearchDTO, pageable);
-        model.addAttribute("studentList", studentList);
-        model.addAttribute("arrayPage", new int[studentList.getTotalPages()]); // 5 trang [0, 0, 0, 0, 0]
-        model.addAttribute("sort", pageable.getSort().toString().replace(": ", ","));
-
-        return "student/list";
-    }
-
-    @PostMapping("/create")
-    public String create(Model model,
-                         @Validated @ModelAttribute("studentCreateDTO") StudentCreateDTO studentCreateDTO, BindingResult bindingResult,
-                         RedirectAttributes redirectAttributes) {
+    @PostMapping()
+    public ResponseEntity<?> create(@Validated @RequestBody StudentCreateDTO studentCreateDTO, BindingResult bindingResult) {
         new StudentCreateDTO().validate(studentCreateDTO, bindingResult);
 
         if (bindingResult.hasErrors()) {
-            // Trường hợp bị lỗi thì gửi lại clazzList
-            model.addAttribute("studentCreateDTO", studentCreateDTO);
-            return "student/create";
+            List<MessageErrorDTO> messageErrorDTOS = new ArrayList<>();
+            for(FieldError fieldError : bindingResult.getFieldErrors()) {
+                messageErrorDTOS.add(new MessageErrorDTO(fieldError.getField(), fieldError.getDefaultMessage()));
+            }
+            return new ResponseEntity<>(messageErrorDTOS, HttpStatus.BAD_REQUEST);
         }
 
-        studentService.create(studentMapper.toStudentFromStudentCreateDTO(studentCreateDTO));
-        redirectAttributes.addFlashAttribute("message", "Thêm mới thành công");
-        return "redirect:/student";
+        studentService.save(studentMapper.toStudentFromStudentCreateDTO(studentCreateDTO));
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @PutMapping("{id}")
+    public ResponseEntity<?> update(@PathVariable("id") int id, @Validated @RequestBody StudentUpdateDTO studentUpdateDTO, BindingResult bindingResult) {
+        if(studentService.findById(id) == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
+        new StudentUpdateDTO().validate(studentUpdateDTO, bindingResult);
+        if (bindingResult.hasErrors()) {
+            List<MessageErrorDTO> messageErrorDTOS = new ArrayList<>();
+            for(FieldError fieldError : bindingResult.getFieldErrors()) {
+                messageErrorDTOS.add(new MessageErrorDTO(fieldError.getField(), fieldError.getDefaultMessage()));
+            }
+            return new ResponseEntity<>(messageErrorDTOS, HttpStatus.BAD_REQUEST);
+        }
 
-//    private void editStudent(HttpServletRequest request, HttpServletResponse response) {
-//        int id = Integer.parseInt(request.getParameter("id"));
-//        Student student = studentService.findById(id);
-//        student.setName(request.getParameter("name"));
-//        student.setScore(Double.parseDouble(request.getParameter("score")));
-//    }
+        Student student = studentMapper.toStudentFromStudentUpdateDTO(studentUpdateDTO);
+        student.setId(id);
+        studentService.save(student);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Student> delete(@PathVariable("id") int id) {
+        Student student = studentService.findById(id);
+
+        if(student == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        studentService.delete(student);
+
+        return new ResponseEntity<>(student, HttpStatus.OK);
+    }
 }

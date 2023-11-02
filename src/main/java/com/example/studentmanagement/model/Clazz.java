@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -18,4 +19,6 @@ public class Clazz {
 
     @Column(name = "name")
     private String name;
+//    @OneToMany(mappedBy = "clazz")
+//    private Set<Student> students;
 }

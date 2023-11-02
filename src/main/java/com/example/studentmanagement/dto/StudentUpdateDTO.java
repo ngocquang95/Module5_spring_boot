@@ -13,7 +13,7 @@ import javax.validation.constraints.Pattern;
 
 @Getter
 @Setter
-public class StudentCreateDTO implements Validator {
+public class StudentUpdateDTO implements Validator {
     @NotBlank(message = "Tên không được để trống")
     @Length( max = 50, message = "Tên quá 50 ký tự")
     @Pattern(regexp = "[a-zA-ZÀ-ỹ\\s]*", message = "Tên chỉ chứa khoảng cách hoặc chữ cái")
@@ -32,7 +32,7 @@ public class StudentCreateDTO implements Validator {
 
     @Override
     public void validate(Object target, Errors errors) {
-        StudentCreateDTO studentCreateDTO = (StudentCreateDTO) target;
+        StudentUpdateDTO studentCreateDTO = (StudentUpdateDTO) target;
 
         if (studentCreateDTO.getScore() != null && !studentCreateDTO.getScore().trim().equals("")) {
            try {
