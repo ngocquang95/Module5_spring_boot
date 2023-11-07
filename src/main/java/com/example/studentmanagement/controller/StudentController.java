@@ -28,6 +28,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/students")
+@CrossOrigin("http://127.0.0.1:5500")
 public class StudentController {
     @Autowired
     @Qualifier("studentService") // Chọn triển khai theo tên bean
@@ -40,7 +41,7 @@ public class StudentController {
     // Làm về BE
     @GetMapping()
     public ResponseEntity<Page<Student>> getStudents(StudentSearchDTO studentSearchDTO,
-                                                  @PageableDefault(page = 0, size = 2, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+                                                  @PageableDefault(page = 0, size = 20, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
         return new ResponseEntity<>(studentService.search(studentSearchDTO, pageable), HttpStatus.OK);
     }
 
